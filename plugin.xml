@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.devblocks.com/schema/plugin.xsd">
+	<id>wgm.nest</id>
+	<name>Nest Integration</name>
+	<description>This plugin provides integration with Nest for remote control of thermostats, security cameras, etc.</description>
+	<author>Webgroup Media, LLC.</author>
+	<version>0.0.1</version>
+	<link>http://www.cerbweb.com/book/latest/plugins/wgm.nest</link>
+	<image>plugin.png</image>
+ 
+ 	<!-- Requirements -->
+
+	<requires>
+		<app_version min="7.3" max="7.3.99" />
+		<php_extension name="curl" />
+	</requires>
+ 
+	<!-- Plugin Dependencies -->
+	
+	<dependencies>
+		<require plugin_id="cerberusweb.core" version="7.3.0" />
+	</dependencies>
+
+	<!-- Exported Classes -->
+	
+	<class_loader>
+		<!--
+		<file path="api/App.php">
+			<class name="WgmNest_API" />
+		</file>
+		-->
+	</class_loader>
+
+	<!-- Extensions -->
+ 
+	<extensions>
+
+		<!-- Service Providers -->
+		
+		<extension point="cerb.service.provider">
+			<id>wgm.nest.service.provider</id>
+			<name>Nest</name>
+			<class>
+				<file>api/App.php</file>
+				<name>ServiceProvider_Nest</name>
+			</class>
+			<params>
+				<param key="contexts">
+					<value>
+						<data key="cerberusweb.contexts.app" />
+						<data key="cerberusweb.contexts.worker" />
+					</value>
+				</param>
+			</params>
+		</extension>
+		
+		<!-- Setup Page Sections -->
+		
+		<extension point="cerberusweb.ui.page.section">
+			<id>wgm.nest.setup.section</id>
+			<name>Setup Page Nest Section</name>
+			<class>
+				<file>api/App.php</file>
+				<name>WgmNest_SetupPageSection</name>
+			</class>
+			<params>
+				<param key="page_id" value="core.page.configuration" />
+				<param key="uri" value="nest" />
+			</params>
+		</extension>
+		
+		<!-- Setup Page Menu Item -->
+		
+		<extension point="cerberusweb.ui.page.menu.item">
+			<id>wgm.nest.setup.menu.item</id>
+			<name>Setup Page Nest Menu Item</name>
+			<class>
+				<file>api/App.php</file>
+				<name>WgmNest_SetupMenuItem</name>
+			</class>
+			<params>
+				<param key="page_id" value="core.page.configuration" />
+				<param key="menu_id" value="core.setup.menu.services" />
+			</params>
+		</extension>
+
+	</extensions>
+</plugin>

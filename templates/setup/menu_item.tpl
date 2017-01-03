@@ -1,0 +1,1 @@
+<a href="{devblocks_url}c=config&a=nest{/devblocks_url}">{'wgm.nest.common'|devblocks_translate}</a>
