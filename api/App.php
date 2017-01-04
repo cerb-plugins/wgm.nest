@@ -21,11 +21,8 @@ class WgmNest_SetupPageSection extends Extension_PageSection {
 		$visit = CerberusApplication::getVisit();
 		$visit->set(ChConfigurationPage::ID, 'nest');
 		
-		$params = array(
-			'product_id' => DevblocksPlatform::getPluginSetting('wgm.nest','product_id',''),
-			'product_secret' => DevblocksPlatform::getPluginSetting('wgm.nest','product_secret',''),
-		);
-		$tpl->assign('params', $params);
+		$credentials = DevblocksPlatform::getPluginSetting('wgm.nest','credentials',false,true,true);
+		$tpl->assign('credentials', $credentials);
 		
 		$tpl->display('devblocks:wgm.nest::setup/index.tpl');
 	}
@@ -38,8 +35,11 @@ class WgmNest_SetupPageSection extends Extension_PageSection {
 			if(empty($product_id) || empty($product_secret))
 				throw new Exception("Both the 'Product ID' and 'Product Secret' are required.");
 			
-			DevblocksPlatform::setPluginSetting('wgm.nest','product_id', $product_id);
-			DevblocksPlatform::setPluginSetting('wgm.nest','product_secret', $product_secret);
+			$credentials = [
+				'product_id' => $product_id,
+				'product_secret' => $product_secret,
+			];
+			DevblocksPlatform::setPluginSetting('wgm.nest','credentials', $credentials, true, true);
 			
 			echo json_encode(array('status'=>true,'message'=>'Saved!'));
 			return;
@@ -56,8 +56,11 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 	const ID = 'wgm.nest.service.provider';
 	
 	private function _getAppKeys() {
-		$product_id = DevblocksPlatform::getPluginSetting('wgm.nest','product_id','');
-		$product_secret = DevblocksPlatform::getPluginSetting('wgm.nest','product_secret','');
+		if(false == ($credentials = DevblocksPlatform::getPluginSetting('wgm.nest','credentials',false,true,true)))
+			return false;
+		
+		@$product_id = $credentials['product_id'];
+		@$product_secret = $credentials['product_secret'];
 		
 		if(empty($product_id) || empty($product_secret))
 			return false;

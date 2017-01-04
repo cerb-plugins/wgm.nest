@@ -20,6 +20,12 @@
 	<dependencies>
 		<require plugin_id="cerberusweb.core" version="7.3.0" />
 	</dependencies>
+	
+	<!-- Patches -->
+	
+	<patches>
+		<patch version="7.3.0" revision="1" file="patches/7.3.0.php" />
+	</patches>
 
 	<!-- Exported Classes -->
 	
@@ -73,7 +79,7 @@
 		
 		<extension point="cerberusweb.ui.page.menu.item">
 			<id>wgm.nest.setup.menu.item</id>
-			<name>Setup Page Nest Menu Item</name>
+			<name>Nest</name>
 			<class>
 				<file>api/App.php</file>
 				<name>WgmNest_SetupMenuItem</name>

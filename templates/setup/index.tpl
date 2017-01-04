@@ -10,10 +10,10 @@
 		<legend>Nest App Credentials</legend>
 		
 		<b>Product ID:</b><br>
-		<input type="text" name="product_id" value="{$params.product_id}" size="64" spellcheck="false"><br>
+		<input type="text" name="product_id" value="{$credentials.product_id}" size="64" spellcheck="false"><br>
 		<br>
 		<b>Product Secret:</b><br>
-		<input type="password" name="product_secret" value="{$params.product_secret}" size="64" spellcheck="false"><br>
+		<input type="password" name="product_secret" value="{$credentials.product_secret}" size="64" spellcheck="false"><br>
 		<br>
 		<div class="status"></div>
 	

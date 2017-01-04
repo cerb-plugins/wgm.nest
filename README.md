@@ -10,6 +10,7 @@ This plugin provides integration with [Nest](https://nest.com) for remote contro
 Installation
 ------------
 * In Cerb, download and enable the plugin from **Setup->Plugins->Library**.
+* Configure your Nest app credentials in **Setup->Services->Nest**.
 
 Credits
 -------
