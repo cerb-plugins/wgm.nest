@@ -54,6 +54,40 @@ endif;
 
 class ServiceProvider_Nest extends Extension_ServiceProvider implements IServiceProvider_HttpRequestSigner, IServiceProvider_OAuth {
 	const ID = 'wgm.nest.service.provider';
+
+	function renderConfigForm(Model_ConnectedAccount $account) {
+		$tpl = DevblocksPlatform::getTemplateService();
+		$active_worker = CerberusApplication::getActiveWorker();
+		
+		$tpl->assign('account', $account);
+		
+		$params = $account->decryptParams($active_worker);
+		$tpl->assign('params', $params);
+		
+		$tpl->display('devblocks:wgm.nest::provider/nest.tpl');
+	}
+	
+	function saveConfigForm(Model_ConnectedAccount $account, array &$params) {
+		@$edit_params = DevblocksPlatform::importGPC($_POST['params'], 'array', array());
+		
+		$active_worker = CerberusApplication::getActiveWorker();
+		$encrypt = DevblocksPlatform::getEncryptionService();
+		
+		// Decrypt OAuth params
+		if(isset($edit_params['params_json'])) {
+			if(false == ($outh_params_json = $encrypt->decrypt($edit_params['params_json'])))
+				return "The connected account authentication is invalid.";
+				
+			if(false == ($oauth_params = json_decode($outh_params_json, true)))
+				return "The connected account authentication is malformed.";
+			
+			if(is_array($oauth_params))
+			foreach($oauth_params as $k => $v)
+				$params[$k] = $v;
+		}
+		
+		return true;
+	}
 	
 	private function _getAppKeys() {
 		if(false == ($credentials = DevblocksPlatform::getPluginSetting('wgm.nest','credentials',false,true,true)))
@@ -71,14 +105,15 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 		);
 	}
 	
-	function renderPopup() {
-		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'], 'string', '');
-		
+	function oauthRender() {
 		// [TODO] Report about missing app keys
 		if(false == ($app_keys = $this->_getAppKeys()))
 			return false;
 		
-		$_SESSION['oauth_view_id'] = $view_id;
+		@$form_id = DevblocksPlatform::importGPC($_REQUEST['form_id'], 'string', '');
+		
+		// Store the $form_id in the session
+		$_SESSION['oauth_form_id'] = $form_id;
 		
 		$url_writer = DevblocksPlatform::getUrlService();
 		$oauth = DevblocksPlatform::getOAuthService($app_keys['key'], $app_keys['secret']);
@@ -92,12 +127,14 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 		@$state = DevblocksPlatform::importGPC($_REQUEST['state'], 'string', '');
 		@$code = DevblocksPlatform::importGPC($_REQUEST['code'], 'string', '');
 		
-		$view_id = $_SESSION['oauth_view_id'];
+		$form_id = $_SESSION['oauth_form_id'];
+		unset($_SESSION['oauth_form_id']);
 		
 		if(false == ($app_keys = $this->_getAppKeys()))
 			return false;
 		
 		$active_worker = CerberusApplication::getActiveWorker();
+		$encrypt = DevblocksPlatform::getEncryptionService();
 		
 		$oauth = DevblocksPlatform::getOAuthService($app_keys['key'], $app_keys['secret']);
 		$oauth->setTokens($code);
@@ -115,27 +152,12 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 			
 		$oauth->setTokens($params['access_token']);
 		
-		// [TODO] Verify the token with API
-		
-		$id = DAO_ConnectedAccount::create(array(
-			DAO_ConnectedAccount::NAME => 'Nest',
-			DAO_ConnectedAccount::EXTENSION_ID => ServiceProvider_Nest::ID,
-			DAO_ConnectedAccount::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
-			DAO_ConnectedAccount::OWNER_CONTEXT_ID => $active_worker->id,
-		));
-		
-		DAO_ConnectedAccount::setAndEncryptParams($id, $params);
-		
-		if($view_id) {
-			echo sprintf("<script>window.opener.genericAjaxGet('view%s', 'c=internal&a=viewRefresh&id=%s');</script>",
-				rawurlencode($view_id),
-				rawurlencode($view_id)
-			);
-			
-			C4_AbstractView::setMarqueeContextCreated($view_id, CerberusContexts::CONTEXT_CONNECTED_ACCOUNT, $id);
-		}
-		
-		echo "<script>window.close();</script>";
+		// Output
+		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl->assign('form_id', $form_id);
+		$tpl->assign('label', 'Nest');
+		$tpl->assign('params_json', $encrypt->encrypt(json_encode($params)));
+		$tpl->display('devblocks:cerberusweb.core::internal/connected_account/oauth_callback.tpl');
 	}
 	
 	function authenticateHttpRequest(Model_ConnectedAccount $account, &$ch, &$verb, &$url, &$body, &$headers) {
