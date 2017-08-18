@@ -4,7 +4,7 @@ class WgmNest_SetupMenuItem extends Extension_PageMenuItem {
 	const POINT = 'wgm.nest.setup.menu.item';
 	
 	function render() {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('extension', $this);
 		$tpl->display('devblocks:wgm.nest::setup/menu_item.tpl');
 	}
@@ -16,7 +16,7 @@ class WgmNest_SetupPageSection extends Extension_PageSection {
 	const ID = 'wgm.nest.setup.section';
 	
 	function render() {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 
 		$visit = CerberusApplication::getVisit();
 		$visit->set(ChConfigurationPage::ID, 'nest');
@@ -56,7 +56,7 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 	const ID = 'wgm.nest.service.provider';
 
 	function renderConfigForm(Model_ConnectedAccount $account) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$active_worker = CerberusApplication::getActiveWorker();
 		
 		$tpl->assign('account', $account);
@@ -71,7 +71,7 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 		@$edit_params = DevblocksPlatform::importGPC($_POST['params'], 'array', array());
 		
 		$active_worker = CerberusApplication::getActiveWorker();
-		$encrypt = DevblocksPlatform::getEncryptionService();
+		$encrypt = DevblocksPlatform::services()->encryption();
 		
 		// Decrypt OAuth params
 		if(isset($edit_params['params_json'])) {
@@ -115,8 +115,8 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 		// Store the $form_id in the session
 		$_SESSION['oauth_form_id'] = $form_id;
 		
-		$url_writer = DevblocksPlatform::getUrlService();
-		$oauth = DevblocksPlatform::getOAuthService($app_keys['key'], $app_keys['secret']);
+		$url_writer = DevblocksPlatform::services()->url();
+		$oauth = DevblocksPlatform::services()->oauth($app_keys['key'], $app_keys['secret']);
 		
 		$url = sprintf("https://home.nest.com/login/oauth2?client_id=%s&state=STATE", $app_keys['key']);
 		
@@ -134,9 +134,9 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 			return false;
 		
 		$active_worker = CerberusApplication::getActiveWorker();
-		$encrypt = DevblocksPlatform::getEncryptionService();
+		$encrypt = DevblocksPlatform::services()->encryption();
 		
-		$oauth = DevblocksPlatform::getOAuthService($app_keys['key'], $app_keys['secret']);
+		$oauth = DevblocksPlatform::services()->oauth($app_keys['key'], $app_keys['secret']);
 		$oauth->setTokens($code);
 		
 		$access_token_url = sprintf("https://api.home.nest.com/oauth2/access_token?client_id=%s&code=%s&client_secret=%s&grant_type=authorization_code",
@@ -153,7 +153,7 @@ class ServiceProvider_Nest extends Extension_ServiceProvider implements IService
 		$oauth->setTokens($params['access_token']);
 		
 		// Output
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('form_id', $form_id);
 		$tpl->assign('label', 'Nest');
 		$tpl->assign('params_json', $encrypt->encrypt(json_encode($params)));
